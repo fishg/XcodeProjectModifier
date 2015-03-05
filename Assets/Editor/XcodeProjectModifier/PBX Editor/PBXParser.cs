@@ -176,8 +176,8 @@ namespace UnityEditor.XCodeEditor
 
 	public class PBXParser
 	{
-        //public const string PBX_HEADER_TOKEN = "// !$*UTF8*$!\n";
-        public const string PBX_HEADER_TOKEN = "// !$*UTF8*$!";
+        public const string PBX_HEADER_TOKEN = "// !$*UTF8*$!\n";
+        // public const string PBX_HEADER_TOKEN = "// !$*UTF8*$!";
         public const char WHITESPACE_SPACE = ' ';
 		public const char WHITESPACE_TAB = '\t';
 		public const char WHITESPACE_NEWLINE = '\n';

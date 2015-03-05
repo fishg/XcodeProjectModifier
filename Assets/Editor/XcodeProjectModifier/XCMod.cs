@@ -125,7 +125,10 @@ namespace UnityEditor.XCodeEditor
 			name = System.IO.Path.GetFileNameWithoutExtension( filename );
 			path = System.IO.Path.GetDirectoryName( filename );
 			
-			string contents = projectFileInfo.OpenText().ReadToEnd();
+			// string contents = projectFileInfo.OpenText().ReadToEnd();
+			StreamReader sr = projectFileInfo.OpenText();
+			string contents = sr.ReadToEnd();
+			sr.Close ();
 			Debug.Log (contents);
 			_datastore = (Hashtable)XUPorterJSON.MiniJSON.jsonDecode( contents );
 			if (_datastore == null || _datastore.Count == 0) {

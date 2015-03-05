@@ -7,6 +7,9 @@ namespace UnityEditor.XCodeEditor
 {
 	public partial class XCProject : System.IDisposable
 	{
+		#if UNITY_5
+		private static bool addedAdSupportFramework=false;
+		#endif
 		private PBXDictionary _datastore;
 		public PBXDictionary _objects;
 		//private PBXDictionary _configurations;
@@ -71,7 +74,8 @@ namespace UnityEditor.XCodeEditor
 					return;
 				}
 				
-				this.projectRootPath = filePath;
+				// this.projectRootPath = filePath;
+				this.projectRootPath = Path.GetFullPath (filePath);
 				//if the path is relative to the project, we need to make it absolute
 				if (!System.IO.Path.IsPathRooted(projectRootPath))
 					projectRootPath = Application.dataPath.Replace("Assets", "") + projectRootPath;
@@ -359,7 +363,13 @@ namespace UnityEditor.XCodeEditor
 			else if( tree.CompareTo( "SOURCE_ROOT" ) == 0 ) {
 				Debug.Log( "Source Root File" );
 				System.Uri fileURI = new System.Uri( absPath );
-				System.Uri rootURI = new System.Uri( ( projectRootPath + "/." ) );
+				System.Uri rootURI ;
+				if(projectRootPath.EndsWith (Path.PathSeparator.ToString ())){
+					rootURI = new System.Uri(  projectRootPath + "."  );
+				}else{
+					rootURI = new System.Uri( ( projectRootPath + "/." ) );
+				}
+				// System.Uri rootURI = new System.Uri( ( projectRootPath + "/." ) );
 				filePath = rootURI.MakeRelativeUri( fileURI ).ToString();
 			}
 			else if( tree.CompareTo("GROUP") == 0) {
@@ -580,13 +590,20 @@ namespace UnityEditor.XCodeEditor
 			if( string.IsNullOrEmpty( name ) ) {
 				return null;
 			}
-			
+
 			foreach( KeyValuePair<string, PBXFileReference> current in fileReferences ) {
-				if( !string.IsNullOrEmpty( current.Value.name ) && current.Value.name.CompareTo( name ) == 0 ) {
+				var k = current.Key;
+				var v = current.Value;
+				#if UNITY_5
+				if(!string.IsNullOrEmpty( v.name ) && v.name.CompareTo("AdSupport.framework")==0 && v.name.CompareTo( name )==0 && !addedAdSupportFramework){
+					addedAdSupportFramework = true;
+					return null;
+				}else
+				#endif
+				if( !string.IsNullOrEmpty( v.name ) && v.name.CompareTo( name ) == 0 ) {
 					return current.Value;
 				}
 			}
-			
 			return null;
 		}
 		
@@ -678,11 +695,11 @@ namespace UnityEditor.XCodeEditor
 		    {
 		        Debug.Log("Adding folders...");
 		        
-                foreach (string folderPath in mod.folders)
+                foreach (XCModFolder folderPath in mod.folders)
 		        {
-		            string absoluteFolderPath = CombinePaths(Application.dataPath, folderPath);
+		            string absoluteFolderPath = CombinePaths(Application.dataPath, folderPath.folderPath);
 		            Debug.Log("Adding folder " + absoluteFolderPath);
-		            this.AddFolder(absoluteFolderPath, modGroup, (string[]) mod.excludes.ToArray(typeof (string)));
+		            this.AddFolder(absoluteFolderPath, folderPath.folderFlags,modGroup, (string[]) mod.excludes.ToArray(typeof (string)));
 		        }
 		    }
 
